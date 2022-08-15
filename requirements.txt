@@ -1,0 +1,4 @@
+pyjarm~=0.0.5
+urllib3~=1.26.8
+requests~=2.28.1
+colorama~=0.4.5
