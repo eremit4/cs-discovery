@@ -1,5 +1,5 @@
 import ssl
-from colorama import Fore
+from colorama import Fore, init
 from urllib.request import urlopen
 from jarm.scanner.scanner import Scanner
 from re import search, sub, MULTILINE, IGNORECASE
@@ -101,6 +101,8 @@ if __name__ == "__main__":
         ssl._create_default_https_context = ssl._create_unverified_context
         # request warning disable
         disable_warnings(InsecureRequestWarning)
+        # perform coloroma multiplatform
+        init(strip=False)
         print(configs['logo'].format(Fore.LIGHTBLUE_EX,
                                      Fore.LIGHTWHITE_EX,
                                      Fore.LIGHTBLUE_EX,
@@ -123,7 +125,7 @@ if __name__ == "__main__":
             print(configs["logs"]["url_to_check"].format(Fore.LIGHTWHITE_EX,
                                                          Fore.LIGHTBLUE_EX,
                                                          Fore.LIGHTWHITE_EX,
-                                                         Fore.LIGHTCYAN_EX,
+                                                         Fore.LIGHTBLUE_EX,
                                                          url,
                                                          Fore.LIGHTWHITE_EX))
             try:
