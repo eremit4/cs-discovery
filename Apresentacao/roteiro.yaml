@@ -1,6 +1,20 @@
-Parte 1:
+CS-Discovery:
   Apresentação:
-    - Apresentação dos integrantes do projeto
+    - Apresentação dos integrantes do projeto, função e empresa.
+  Recapitulando:
+    - Breve overview sobre o CobaltStrike, TA usando a tool, metodos de detecções tradicionais, etc.
+  Introdução:
+   Metodo de detecção via fingerprint:
+    - Resumir sobre JA3/JA3s vs JARM, suas principais diferença e qual foi utilizado no projeto.
+   Metodo de detecção via misconfig:
+    - Metodo de detecção via "encoded byte"
+  Tool:
+   Objetivo:
+    - Compartilhar a proposta da ferramenta, engines e como ela pode ajudar os times de IR e Inteligencia
+   Caso de uso:
+    - Demonstrar caso de uso utilizando um IOC confiavel (@malware_traffic). Nesse exemplo podemos seguir com um GIF
+    - Demonstrar caso de uso utilizando 'in real time'. Nesse exemplo podemos avaliar o uso de uma VPS.
+   
   
   
   
