@@ -1,12 +1,27 @@
 CS-Discovery:
+  
   Apresentação:
     - Apresentação dos integrantes do projeto, função e empresa
+      - "Nome, cargo, nickname"
     - Mencionar sobre a palestra anterior "Yara"
+      - "Resolvemos trazer esse novo tema pois acreditamos ser mais valioso, mas caso existe interesse em conhecer o tema anterior, estamos disponiveis"
+  
   Recapitulando:
     - Breve overview sobre o CobaltStrike, TA usando a tool, metodos de detecções tradicionais, etc.
+      - "Cobalt Strike é uma ferramenta de simução adversarial (@CoreSecurity) que começou a ser utilizada por inumeros atores maliciosos na fase de 'post-exploitation'."
+      - "Um dos principais motivo é a facilidade de uso e a gama de features disponiveis na ferramenta."
+      - "O Cobalt Strike possui quatro componentes principais: Team Server, Client, Beacon e Loader. O foco da apresentação estará no Team Server / Beacon"
+      - "A maioria dos metodos de detecções atuais foca na detecção do Beacon, ou seja, comportamento anomalo : Named Pipe & Anomalia entre processos". 
+      - "Porem os metodos de detecçoes atuais nao são eficaz quando o TA tem o recurso e tempo para desenvolver seu proprio loader". [Pegar print do RED]
+      - "Decidimos entao realizar alguns estudos e criar novas oportunidades de detecção, ou oportunidade até entao pouco documentadas"
+      
   Introdução:
    Metodo de detecção via fingerprint:
     - Resumir sobre JA3/JA3s vs JARM, suas principais diferença e qual foi utilizado no projeto.
+      - "JA3 e JARM são metodos criados pela SaleForce que tem como objetivo gerar fingerprint de conexao SSL. A proposta dos dois metodos são muito semelhantes.
+      - "JA3 é um metodo totalmente passivo, ou seja, o trafego precisa ser gerado para que o fingerprint possa ser gerado"
+      - "JARM é o oposto. Esse metodo enviara 10 req para o alvo e o a resposta obtida será utilizada para gerar o fingerprint"
+      
    Metodo de detecção via misconfig:
     - Metodo de detecção via "encoded byte"
   Tool:
@@ -16,6 +31,8 @@ CS-Discovery:
     - Demonstrar caso de uso utilizando um IOC confiavel (@malware_traffic). Nesse exemplo podemos seguir com um GIF
     - Demonstrar caso de uso utilizando 'in real time'. Nesse exemplo podemos avaliar o uso de uma VPS.
    
+  Apresentação:
+    
   
   
   
