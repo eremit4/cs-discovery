@@ -29,11 +29,13 @@ CS-Discovery:
   Tool:
    Objetivo:
     - Compartilhar a proposta da ferramenta, engines e como ela pode ajudar os times de IR e Inteligencia
+      - "Contar uma historinha, algo como: O que fazer quando estamos analisando uma comunicação suspeita mas nao temos informação suficiente para atribuir o servidor a um CS?"
+      - "Nessa primeira versão a ferramenta utiliza as duas abordagens de detecção mencionadas anteriormente e uma engine de lookup"
+      - "A proposta da engine de lookup é consultar o resultado do JARM do servidor analisado e verificar se ele está em duas fontes de INTEL (VT & GitHub)"
+      
    Caso de uso:
     - Demonstrar caso de uso utilizando um IOC confiavel (@malware_traffic). Nesse exemplo podemos seguir com um GIF
     - Demonstrar caso de uso utilizando 'in real time'. Nesse exemplo podemos avaliar o uso de uma VPS.
-   
-  Apresentação:
     
   
   
