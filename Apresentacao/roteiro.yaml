@@ -24,6 +24,8 @@ CS-Discovery:
       
    Metodo de detecção via misconfig:
     - Metodo de detecção via "encoded byte"
+      - "Esse metodo abusa de um misconfiguration do servidor HTTP do Cobalt Strike (NanoHTTPD), onde o mesmo nao consegue tratar requisições com 'encoded byte (%0)'"
+      
   Tool:
    Objetivo:
     - Compartilhar a proposta da ferramenta, engines e como ela pode ajudar os times de IR e Inteligencia
