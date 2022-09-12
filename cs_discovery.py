@@ -1,11 +1,14 @@
+#!/usr/bin/env python3
 import ssl
-from requests import get
 from bs4 import BeautifulSoup
 from colorama import Fore, init
-from urllib.request import urlopen
 from jarm.scanner.scanner import Scanner
+from urllib.request import urlopen
+from urllib3.exceptions import MaxRetryError
 from traceback import format_exc as print_traceback
 from re import search, sub, match, MULTILINE, IGNORECASE
+from requests import get
+from requests.exceptions import ConnectionError
 from requests.packages.urllib3 import disable_warnings
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from argparse import ArgumentParser, SUPPRESS, HelpFormatter
@@ -22,7 +25,9 @@ configs = {
         "help": "Show this help message and exit."
     },
     "logs": {
-        "url_to_check": "{}[{}>{}] Analyzing target {}{}",
+        "url_to_check": "{}[{}>{}] Analyzing target {}<{}>{}",
+        "target_alive": "\t{}[{}>{}] The target {}<{}>{} is alive",
+        "target_not_alive": "\t{}[{}!{}] The target {}<{}>{} is not alive",
         "cs_possible": "\t{}[{}>{}] Possible Cobalt Strike detected using encoded byte",
         "no_indicator": "\t{}[{}>{}] No indicator was found in target {}<{}>{} using encoded byte",
         "get_jarm": "\t{}[{}>{}] Jarm: {}",
@@ -65,6 +70,39 @@ class CustomHelpFormatter(HelpFormatter):
         default = self._get_default_metavar_for_optional(action)
         args_string = self._format_args(action, default)
         return ', '.join(action.option_strings) + ' ' + args_string
+
+
+def target_alive_checker(target: str) -> bool:
+    """
+    check if the target is alive
+    :param target: target url
+    :return: True if the target is alive and False if the target is down
+    """
+    try:
+        resp = get(url=target)
+        if resp.status_code >= 500:
+            print(configs["logs"]["target_not_alive"].format(Fore.LIGHTWHITE_EX,
+                                                             Fore.LIGHTRED_EX,
+                                                             Fore.LIGHTWHITE_EX,
+                                                             Fore.LIGHTRED_EX,
+                                                             target,
+                                                             Fore.LIGHTWHITE_EX))
+            return False
+        print(configs["logs"]["target_alive"].format(Fore.LIGHTWHITE_EX,
+                                                     Fore.LIGHTRED_EX,
+                                                     Fore.LIGHTWHITE_EX,
+                                                     Fore.LIGHTRED_EX,
+                                                     target,
+                                                     Fore.LIGHTWHITE_EX))
+        return True
+    except ConnectionError or MaxRetryError:
+        print(configs["logs"]["target_not_alive"].format(Fore.LIGHTWHITE_EX,
+                                                         Fore.LIGHTRED_EX,
+                                                         Fore.LIGHTWHITE_EX,
+                                                         Fore.LIGHTRED_EX,
+                                                         target,
+                                                         Fore.LIGHTWHITE_EX))
+        return False
 
 
 def acquire_jarm(address: str) -> str:
@@ -150,11 +188,13 @@ def main(args: ArgumentParser) -> None:
 
     for url in urls:
         print(configs["logs"]["url_to_check"].format(Fore.LIGHTWHITE_EX,
-                                                     Fore.LIGHTBLUE_EX,
+                                                     Fore.LIGHTRED_EX,
                                                      Fore.LIGHTWHITE_EX,
-                                                     Fore.LIGHTBLUE_EX,
+                                                     Fore.LIGHTRED_EX,
                                                      url,
                                                      Fore.LIGHTWHITE_EX))
+        if not target_alive_checker(target=url):
+            continue
         try:
             urlopen(f"{url}/%0".strip().replace("//%", "/%"))
         except Exception as error:
@@ -174,7 +214,7 @@ def main(args: ArgumentParser) -> None:
             jarm_lookup(jarm_code=jarm)
         else:
             print(configs["logs"]["no_indicator"].format(Fore.LIGHTWHITE_EX,
-                                                         Fore.LIGHTBLUE_EX,
+                                                         Fore.LIGHTRED_EX,
                                                          Fore.LIGHTWHITE_EX,
                                                          url))
 
@@ -194,11 +234,11 @@ if __name__ == "__main__":
         disable_warnings(InsecureRequestWarning)
         # perform coloroma multiplatform
         init(strip=False)
-        print(configs['logo'].format(Fore.LIGHTBLUE_EX,
+        print(configs['logo'].format(Fore.LIGHTRED_EX,
                                      Fore.LIGHTWHITE_EX,
-                                     Fore.LIGHTBLUE_EX,
+                                     Fore.LIGHTRED_EX,
                                      Fore.LIGHTWHITE_EX,
-                                     Fore.LIGHTBLUE_EX,
+                                     Fore.LIGHTRED_EX,
                                      Fore.LIGHTWHITE_EX))
         main(args=args_)
 
