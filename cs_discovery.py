@@ -27,13 +27,12 @@ configs = {
         "no_indicator": "\t{}[{}>{}] No indicator was found in target {}<{}>{} using encoded byte",
         "get_jarm": "\t{}[{}>{}] Jarm: {}",
         "jarm_lookup": "\t{}[{}>{}] Searching for the Jarm above in Github and VirusTotal",
-        "lookup_title": "\t\t{}[{}+{}] Title: {}",
         "lookup_url": "\t\t{}[{}+{}] Url: {}",
         "lookup_not_found": "\t\t{}[{}-{}] Not found",
         "key_interrupt": "\n{}[{}!{}] Well, it looks like someone interrupted the execution...",
         "error": "{}[{}!{}] An error occurred: {}"
     },
-    "logo": r'''{}
+    "logo": r"""{}
                    ______      __          ____     _____ __       _ __                  
                   / ____/___  / /_  ____ _/ / /_   / ___// /______(_) /_____             
                  / /   / __ \/ __ \/ __ `/ / __/   \__ \/ __/ ___/ / //_/ _ \            
@@ -47,7 +46,7 @@ configs = {
 
                          {}[{}>{}] Finding Cobalt Strike Fingerprint
                          [{}>{}] by Johnatan Zacarias and Higor Melgaço                   
-    '''
+    """
 }
 
 
@@ -121,10 +120,6 @@ def jarm_lookup(jarm_code: str) -> None:
     links, count = soup.find_all("a"), 0
     for link in links:
         if "github" in link.attrs['href'] or "virustotal" in link.attrs['href']:
-            print(configs["logs"]["lookup_title"].format(Fore.LIGHTWHITE_EX,
-                                                         Fore.LIGHTGREEN_EX,
-                                                         Fore.LIGHTWHITE_EX,
-                                                         link.text))
             print(configs["logs"]["lookup_url"].format(Fore.LIGHTWHITE_EX,
                                                        Fore.LIGHTGREEN_EX,
                                                        Fore.LIGHTWHITE_EX,
