@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import ssl
+from warnings import filterwarnings
 from bs4 import BeautifulSoup
 from colorama import Fore, init
 from jarm.scanner.scanner import Scanner
@@ -79,7 +80,7 @@ def target_alive_checker(target: str) -> bool:
     :return: True if the target is alive and False if the target is down
     """
     try:
-        resp = get(url=target)
+        resp = get(url=target, verify=False)
         if resp.status_code >= 500:
             print(configs["logs"]["target_not_alive"].format(Fore.LIGHTWHITE_EX,
                                                              Fore.LIGHTRED_EX,
@@ -95,7 +96,7 @@ def target_alive_checker(target: str) -> bool:
                                                      target,
                                                      Fore.LIGHTWHITE_EX))
         return True
-    except ConnectionError or MaxRetryError:
+    except ConnectionError or MaxRetryError as error:
         print(configs["logs"]["target_not_alive"].format(Fore.LIGHTWHITE_EX,
                                                          Fore.LIGHTRED_EX,
                                                          Fore.LIGHTWHITE_EX,
@@ -120,7 +121,7 @@ def acquire_jarm(address: str) -> str:
         """
         try:
             result = Scanner.scan(address_, port_)[0]
-            if result is not None:
+            if result is not None or result in "00000000000":
                 return result
             else:
                 return "Not found"
@@ -144,16 +145,16 @@ def acquire_jarm(address: str) -> str:
         return "Not found"
 
 
-def jarm_lookup(jarm_code: str) -> None:
+def target_lookup_from_google(dork: str) -> None:
     """
     Search the collected jarm on the internet to know if this jarm is known
-    :param jarm_code: jarm collected after the encoded bte detection
+    :param dork: dork to find the target on VT or GitHub from Google Search
     :return: None
     """
     print(configs["logs"]["jarm_lookup"].format(Fore.LIGHTWHITE_EX,
                                                 Fore.LIGHTRED_EX,
                                                 Fore.LIGHTWHITE_EX))
-    response = get(url=f"https://www.google.com/search?q={jarm_code}")
+    response = get(url=f"https://www.google.com/search?q={dork}")
     soup = BeautifulSoup(response.content, 'lxml')
     links, count = soup.find_all("a"), 0
     for link in links:
@@ -196,27 +197,33 @@ def main(args: ArgumentParser) -> None:
         if not target_alive_checker(target=url):
             continue
         try:
-            urlopen(f"{url}/%0".strip().replace("//%", "/%"))
+            url = f"{url}/%0".strip().replace("//%", "/%")
+            urlopen(url=url)
         except Exception as error:
-            request_error = str(error.read().decode())
-
-        if request_error == configs["response_msg"]:
+            request_error = str(error)
+        if ("Bad Request" or configs["response_msg"]) in request_error:
             print(configs["logs"]["cs_possible"].format(Fore.LIGHTWHITE_EX,
                                                         Fore.LIGHTRED_EX,
                                                         Fore.LIGHTWHITE_EX))
-            jarm = acquire_jarm(url)
+            try:
+                jarm = acquire_jarm(url)
+            except Exception:
+                jarm = "Not found"
+
             print(configs["logs"]["get_jarm"].format(Fore.LIGHTWHITE_EX,
                                                      Fore.LIGHTRED_EX,
                                                      Fore.LIGHTWHITE_EX,
                                                      jarm))
             if jarm == "Not found":
-                continue
-            jarm_lookup(jarm_code=jarm)
+                target_lookup_from_google(dork=f"intext%3Acobalt.strike+intext%3A{url}")
+            target_lookup_from_google(dork=f"intext%3A{jarm}")
         else:
             print(configs["logs"]["no_indicator"].format(Fore.LIGHTWHITE_EX,
                                                          Fore.LIGHTRED_EX,
                                                          Fore.LIGHTWHITE_EX,
-                                                         url))
+                                                         Fore.LIGHTRED_EX,
+                                                         url,
+                                                         Fore.LIGHTWHITE_EX))
 
 
 if __name__ == "__main__":
@@ -231,6 +238,7 @@ if __name__ == "__main__":
     try:
         ssl._create_default_https_context = ssl._create_unverified_context
         # request warning disable
+        filterwarnings("ignore")
         disable_warnings(InsecureRequestWarning)
         # perform coloroma multiplatform
         init(strip=False)
