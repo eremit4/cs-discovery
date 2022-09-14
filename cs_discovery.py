@@ -26,13 +26,13 @@ configs = {
         "help": "Show this help message and exit."
     },
     "logs": {
-        "url_to_check": "{}[{}>{}] Analyzing target {}<{}>{}",
+        "url_to_check": "\n{}[{}>{}] Analyzing target {}<{}>{}",
         "target_alive": "\t{}[{}>{}] The target {}<{}>{} is alive",
         "target_not_alive": "\t{}[{}!{}] The target {}<{}>{} is not alive",
         "cs_possible": "\t{}[{}>{}] Possible Cobalt Strike detected using encoded byte",
         "no_indicator": "\t{}[{}>{}] No indicator was found in target {}<{}>{} using encoded byte",
         "get_jarm": "\t{}[{}>{}] Jarm: {}",
-        "jarm_lookup": "\t{}[{}>{}] Searching for the Jarm above in Github and VirusTotal",
+        "jarm_lookup": "\t{}[{}>{}] Searching for the target above in Github and VirusTotal",
         "lookup_url": "\t\t{}[{}+{}] Url: {}",
         "lookup_not_found": "\t\t{}[{}-{}] Not found",
         "key_interrupt": "\n{}[{}!{}] Well, it looks like someone interrupted the execution...",
@@ -114,15 +114,17 @@ def acquire_jarm(address: str) -> str:
     """
     def get_jarm(address_: str, port_: int) -> str:
         """
-        get the jarm itself
+        get the Jarm itself
         :param address_: domain or ip extracted
         :param port_: port
         :return: jarm code string
         """
         try:
             result = Scanner.scan(address_, port_)[0]
-            if result is not None or result in "00000000000":
+            if result is not None:
                 return result
+            elif "000000000" in result:
+                return "Not found"
             else:
                 return "Not found"
         except Exception:
@@ -134,9 +136,13 @@ def acquire_jarm(address: str) -> str:
     except Exception:
         port = 443
 
+    if port == 80 or "http" in address:
+        return "Not found"
+
     input_cleared = sub(configs["clear_input_to_jarm"], subst, address, 0, MULTILINE | IGNORECASE)
     is_domain = search(configs["domains_regex"], input_cleared)
     is_ip = match(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})', input_cleared)
+
     if is_domain:
         return get_jarm(address_=is_domain.string, port_=port)
     elif is_ip:
@@ -154,16 +160,24 @@ def target_lookup_from_google(dork: str) -> None:
     print(configs["logs"]["jarm_lookup"].format(Fore.LIGHTWHITE_EX,
                                                 Fore.LIGHTRED_EX,
                                                 Fore.LIGHTWHITE_EX))
-    response = get(url=f"https://www.google.com/search?q={dork}")
-    soup = BeautifulSoup(response.content, 'lxml')
-    links, count = soup.find_all("a"), 0
-    for link in links:
-        if "github" in link.attrs['href'] or "virustotal" in link.attrs['href']:
+    response = get(url=f"https://www.google.com/search?q={dork}",
+                   headers={"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:104.0) Gecko/20100101 Firefox/104.0",
+                            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                            "Connection": "keep-alive",
+                            "Upgrade-Insecure-Requests": "1"})
+    soup = BeautifulSoup(response.content, 'html.parser')
+    count = 0
+    links_1, links_2 = soup.findAll("a"), soup.findAll("div > a")
+    for link in links_1:
+        if not link.attrs.get("href"):
+            continue
+        if "github" in link.attrs["href"] or "virustotal" in link.attrs["href"]:
             print(configs["logs"]["lookup_url"].format(Fore.LIGHTWHITE_EX,
                                                        Fore.LIGHTGREEN_EX,
                                                        Fore.LIGHTWHITE_EX,
-                                                       link.attrs['href'].replace('/url?q=', '')))
+                                                       link.attrs["href"].replace("/url?q=", "")))
             count += 1
+
     if count == 0:
         print(configs["logs"]["lookup_not_found"].format(Fore.LIGHTWHITE_EX,
                                                          Fore.LIGHTRED_EX,
@@ -215,8 +229,11 @@ def main(args: ArgumentParser) -> None:
                                                      Fore.LIGHTWHITE_EX,
                                                      jarm))
             if jarm == "Not found":
-                target_lookup_from_google(dork=f"intext%3Acobalt.strike+intext%3A{url}")
-            target_lookup_from_google(dork=f"intext%3A{jarm}")
+                target = url.replace("/%0", "")
+                target_lookup_from_google(dork=f"{target} cobalt strike")
+            else:
+                target_lookup_from_google(dork=f"{jarm} cobalt strike")
+
         else:
             print(configs["logs"]["no_indicator"].format(Fore.LIGHTWHITE_EX,
                                                          Fore.LIGHTRED_EX,
