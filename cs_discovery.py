@@ -31,9 +31,9 @@ configs = {
         "target_not_alive": "\t{}[{}!{}] The target {}<{}>{} is not alive",
         "cs_possible": "\t{}[{}>{}] Possible Cobalt Strike detected using encoded byte",
         "no_indicator": "\t{}[{}>{}] No indicator was found in target {}<{}>{} using encoded byte",
-        "get_jarm": "\t{}[{}>{}] Jarm: {}",
-        "jarm_lookup": "\t{}[{}>{}] Searching for the target above in Github and VirusTotal",
-        "lookup_url": "\t\t{}[{}+{}] Url: {}",
+        "get_jarm": "\t{}[{}>{}] Jarm: {}{}{}",
+        "target_mentions": "\t{}[{}>{}] Looking for target mentions on the internet",
+        "lookup_url": "\t\t{}[{}+{}] Url: {}{}{}",
         "lookup_not_found": "\t\t{}[{}-{}] Not found",
         "key_interrupt": "\n{}[{}!{}] Well, it looks like someone interrupted the execution...",
         "error": "{}[{}!{}] An error occurred: {}"
@@ -123,8 +123,6 @@ def acquire_jarm(address: str) -> str:
             result = Scanner.scan(address_, port_)[0]
             if result is not None:
                 return result
-            elif "000000000" in result:
-                return "Not found"
             else:
                 return "Not found"
         except Exception:
@@ -136,7 +134,7 @@ def acquire_jarm(address: str) -> str:
     except Exception:
         port = 443
 
-    if port == 80 or "http" in address:
+    if port == 80 or "http://" in address:
         return "Not found"
 
     input_cleared = sub(configs["clear_input_to_jarm"], subst, address, 0, MULTILINE | IGNORECASE)
@@ -151,16 +149,16 @@ def acquire_jarm(address: str) -> str:
         return "Not found"
 
 
-def target_lookup_from_google(dork: str) -> None:
+def target_lookup_from_google(query: str) -> None:
     """
-    Search the collected jarm on the internet to know if this jarm is known
-    :param dork: dork to find the target on VT or GitHub from Google Search
+    Search the target on Google to look for mentions of it
+    :param query: dork to find the target on VT or GitHub from Google Search
     :return: None
     """
-    print(configs["logs"]["jarm_lookup"].format(Fore.LIGHTWHITE_EX,
-                                                Fore.LIGHTRED_EX,
-                                                Fore.LIGHTWHITE_EX))
-    response = get(url=f"https://www.google.com/search?q={dork}",
+    print(configs["logs"]["target_mentions"].format(Fore.LIGHTWHITE_EX,
+                                                    Fore.LIGHTRED_EX,
+                                                    Fore.LIGHTWHITE_EX))
+    response = get(url=f"https://www.google.com/search?q={query}",
                    headers={"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:104.0) Gecko/20100101 Firefox/104.0",
                             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
                             "Connection": "keep-alive",
@@ -171,11 +169,13 @@ def target_lookup_from_google(dork: str) -> None:
     for link in links_1:
         if not link.attrs.get("href"):
             continue
-        if "github" in link.attrs["href"] or "virustotal" in link.attrs["href"]:
+        if ("github" in link.attrs["href"] or "virustotal" in link.attrs["href"]) and not "translate.google" in link.attrs["href"]:
             print(configs["logs"]["lookup_url"].format(Fore.LIGHTWHITE_EX,
-                                                       Fore.LIGHTGREEN_EX,
+                                                       Fore.LIGHTBLUE_EX,
                                                        Fore.LIGHTWHITE_EX,
-                                                       link.attrs["href"].replace("/url?q=", "")))
+                                                       Fore.LIGHTBLUE_EX,
+                                                       link.attrs["href"].replace("/url?q=", ""),
+                                                       Fore.RESET))
             count += 1
 
     if count == 0:
@@ -215,24 +215,23 @@ def main(args: ArgumentParser) -> None:
             urlopen(url=url)
         except Exception as error:
             request_error = str(error)
+
         if ("Bad Request" or configs["response_msg"]) in request_error:
             print(configs["logs"]["cs_possible"].format(Fore.LIGHTWHITE_EX,
                                                         Fore.LIGHTRED_EX,
                                                         Fore.LIGHTWHITE_EX))
-            try:
-                jarm = acquire_jarm(url)
-            except Exception:
-                jarm = "Not found"
-
+            jarm = acquire_jarm(url)
             print(configs["logs"]["get_jarm"].format(Fore.LIGHTWHITE_EX,
                                                      Fore.LIGHTRED_EX,
                                                      Fore.LIGHTWHITE_EX,
-                                                     jarm))
+                                                     Fore.LIGHTRED_EX,
+                                                     jarm,
+                                                     Fore.RESET))
+            target = url.replace("/%0", "")
             if jarm == "Not found":
-                target = url.replace("/%0", "")
-                target_lookup_from_google(dork=f"{target} cobalt strike")
+                target_lookup_from_google(query=f"{target} cobalt strike")
             else:
-                target_lookup_from_google(dork=f"{jarm} cobalt strike")
+                target_lookup_from_google(query=f"{jarm}")
 
         else:
             print(configs["logs"]["no_indicator"].format(Fore.LIGHTWHITE_EX,
