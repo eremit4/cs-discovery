@@ -163,10 +163,8 @@ def target_lookup_from_google(query: str) -> None:
                             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
                             "Connection": "keep-alive",
                             "Upgrade-Insecure-Requests": "1"})
-    soup = BeautifulSoup(response.content, 'html.parser')
-    count = 0
-    links_1, links_2 = soup.findAll("a"), soup.findAll("div > a")
-    for link in links_1:
+    soup, count = BeautifulSoup(response.content, 'html.parser'), 0
+    for link in soup.findAll("a"):
         if not link.attrs.get("href"):
             continue
         if ("github" in link.attrs["href"] or "virustotal" in link.attrs["href"]) and not "translate.google" in link.attrs["href"]:
