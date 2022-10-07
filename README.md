@@ -1,4 +1,4 @@
-# Cobalt Strikes Discovery
+# Cobalt Strike Discovery
 > Cobalt Strike is a commercial penetration testing tool, which gives security testers access to a large variety of attack capabilities.
 > This tool aims to detect Cobalt Strike servers by sending an encoded byte in the request to the server itself and, if the response is satisfactory, collects the server's JARM and looks for evidence of the target on the internet.
 > The construction of this project was based on a report prepared by MDSec named "How I Meet Your Beacon - Cobalt Strike".
