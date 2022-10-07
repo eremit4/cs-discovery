@@ -214,7 +214,7 @@ def main(args: ArgumentParser) -> None:
         except Exception as error:
             request_error = str(error)
 
-        if ("Bad Request" or configs["response_msg"]) in request_error:
+        if configs["response_msg"] in request_error:
             print(configs["logs"]["cs_possible"].format(Fore.LIGHTWHITE_EX,
                                                         Fore.LIGHTRED_EX,
                                                         Fore.LIGHTWHITE_EX))
