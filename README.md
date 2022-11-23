@@ -1,8 +1,8 @@
 # Cobalt Strike Discovery
 > Cobalt Strike is a commercial penetration testing tool, which gives security testers access to a large variety of attack capabilities.
-> This tool aims to detect Cobalt Strike servers by sending an encoded byte in the request to the server itself and, if the response is satisfactory, collects the server's JARM and looks for evidence of the target on the internet.
-> The construction of this project was based on a report prepared by MDSec named "How I Meet Your Beacon - Cobalt Strike".
-> The report can be seen [here](https://www.mdsec.co.uk/2022/07/part-2-how-i-met-your-beacon-cobalt-strike/) 
+> This tool aims to detect Cobalt Strike servers from traffic telemetry, replacing the much-used endpoint telemetry.<br>
+> The construction of this project was inspired on the reports <b>[How I Meet Your Beacon - Cobalt Strike](https://www.mdsec.co.uk/2022/07/part-2-how-i-met-your-beacon-cobalt-strike/)</b> by <b>MDSec</b>, 
+> and <b>[How Malleable C2 Profiles Make Cobalt Strike Difficult to Detect](https://unit42.paloaltonetworks.com/cobalt-strike-malleable-c2-profile/)</b> by <b>Palo Alto Unit 42</b>.
 
 ## 👨‍💻 Installing
 
@@ -26,18 +26,23 @@ Discovering the project capabilities:
 python cs_discovery.py --help
 ```
 
-Running against a single target:
+Running against a single target to detect Team Servers using the encoded byte:
 ```bash
 python cs_discovery.py --url <target>
 ```
 
-Running against multiple targets
+Running against multiple targets to detect Team Servers using the encoded byte:
 ```bash
 python cs_discovery.py --file <filepath>
 ```
 
+Running against a single target to detect Team Servers using byte encoded and other optional method:
+```bash
+python cs_discovery.py --url <target> --<optional flag>
+```
+
 ## 🔮️ Demo
-![](./readme_demo.gif)
+[![asciicast](https://asciinema.org/a/539062.svg)](https://asciinema.org/a/539062)
 
 ## 📝 License
 This project is under the [MIT License](LICENSE).
