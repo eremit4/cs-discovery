@@ -182,26 +182,33 @@ def target_lookup_from_google(url: str, jarm: str) -> None:
     :param jarm:
     :return: None
     """
+    def lookup_request(param: str):
+        """
+
+        :param param:
+        :return:
+        """
+        return get(url=f"https://www.google.com/search?q={param}",
+                   headers={
+                       "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:104.0) Gecko/20100101 Firefox/104.0",
+                       "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                       "Connection": "keep-alive",
+                       "Upgrade-Insecure-Requests": "1"}).content
+
     print(configs["logs"]["target_mentions"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX))
-
     target = url.replace("/%0", "")
+    response = b""
     if jarm == "Not found":
-        query = f"{target} cobalt strike"
-        url_ = f"https://www.google.com/search?q={query}"
+        response += lookup_request(param=f"{target} cobalt strike")
     else:
-        url_ = f"https://www.google.com/search?q={jarm}"
+        response += lookup_request(param=jarm)
+        response += lookup_request(param=f"{target} cobalt strike")
 
-    response = get(url=url_,
-                   headers={"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:104.0) Gecko/20100101 Firefox/104.0",
-                            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-                            "Connection": "keep-alive",
-                            "Upgrade-Insecure-Requests": "1"})
-
-    soup, count = BeautifulSoup(response.content, 'html.parser'), 0
+    soup, count = BeautifulSoup(response, 'html.parser'), 0
     for link in soup.findAll("a"):
         if not link.attrs.get("href"):
             continue
-        if ("github" in link.attrs["href"] or "virustotal" in link.attrs["href"]) and not "translate.google" in link.attrs["href"]:
+        if ("github" in link.attrs["href"] or "virustotal" in link.attrs["href"]) and not "translate.google" in link.attrs["href"] and count <= 5:
             print(configs["logs"]["lookup_url"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, link.attrs["href"].replace("/url?q=", ""), Fore.RESET))
             count += 1
 
