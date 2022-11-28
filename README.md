@@ -42,7 +42,7 @@ python cs_discovery.py --url <target> --<optional flag>
 ```
 
 ## 🔮️ Demo
-[![asciicast](https://asciinema.org/a/539062.svg)](https://asciinema.org/a/539062)
+[![asciicast](https://asciinema.org/a/541035.svg)](https://asciinema.org/a/541035)
 
 ## 📝 License
 This project is under the [MIT License](LICENSE).
