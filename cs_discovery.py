@@ -256,7 +256,6 @@ def main(args: ArgumentParser) -> None:
             urlopen(url=url_with_byte)
         except Exception as error:
             request_error = str(error)
-        print(request_error)
         if configs["response_msg"] in request_error:
             print(configs["logs"]["cs_possible"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX))
         else:
