@@ -20,6 +20,7 @@ configs = {
     "clear_input_to_jarm": r"(https?:\/\/)?([w]{3}\.)?(\w*.\w*)([\/\w]*)",
     "response_msg": "BAD REQUEST: Bad percent-encoding.",
     "profiles": ["Iya9", "load"],
+    "lookup_blacklist": ["google.com/", "/search?q=site:"],
     "argparser": {
         "desc_general": "Cobalt Strike Discover - Finding Cobalt Strike Fingerprint.",
         "url": "Single url to check",
@@ -33,18 +34,18 @@ configs = {
     "logs": {
         "url_to_check": "\n{}[{}>{}] Analyzing target {}<{}>{}",
         "target_alive": "\t{}[{}>{}] The target is alive",
-        "target_not_alive": "\t{}[{}!{}] The target is not alive",
+        "target_not_alive": "\t{}[{}>{}] The target is not alive",
         "cs_possible": "\t{}[{}!{}] Possible Cobalt Strike detected using encoded byte",
         "no_indicator": "\t{}[{}>{}] No indicator was found on the target using encoded byte",
         "jarm_collected": "\t{}[{}>{}] Jarm: {}{}{}",
         "target_mentions": "\t{}[{}>{}] Looking for target mentions on the internet",
-        "lookup_url": "\t\t{}[{}+{}] Url: {}{}{}",
+        "lookup_url": "\t\t{}[{}!{}] {}{}{}",
         "lookup_not_found": "\t\t{}[{}-{}] Not found",
         "searching_profiles": "\t{}[{}>{}] Looking for Cobalt Strike default profiles on the target",
-        "profile_detected": "\t\t{}[{}>{}] Profile {}{}{} detected",
-        "profile_url": "\t\t\t{}[{}+{}] Url: {}{}",
-        "profile_content_type": "\t\t\t{}[{}+{}] Content type: {}{}",
-        "profile_payload_size": "\t\t\t{}[{}+{}] Payload size {}{}",
+        "profile_detected": "\t\t{}[{}!{}] Profile {}{}{} detected",
+        "profile_url": "\t\t\t{}[{}>{}] Url: {}{}",
+        "profile_content_type": "\t\t\t{}[{}>{}] Content type: {}",
+        "profile_payload_size": "\t\t\t{}[{}>{}] Payload size: {}",
         "key_interrupt": "\n{}[{}!{}] Well, it looks like someone interrupted the execution...",
         "error": "{}[{}!{}] An error occurred: {}"
     },
@@ -61,7 +62,7 @@ configs = {
                                                                                 /____/   
 
                          {}[{}>{}] Finding Cobalt Strike Fingerprint
-                         [{}>{}] by Johnatan Zacarias and Higor Melgaço                   
+                         [{}>{}] by Johnatan Camargo and Higor Melgaço                   
     """
 }
 
@@ -92,12 +93,12 @@ def target_alive_checker(target: str) -> bool:
     try:
         resp = get(url=target, verify=False)
         if resp.status_code >= 500:
-            print(configs["logs"]["target_not_alive"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, target, Fore.LIGHTWHITE_EX))
+            print(configs["logs"]["target_not_alive"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, target, Fore.LIGHTWHITE_EX))
             return False
-        print(configs["logs"]["target_alive"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, target, Fore.LIGHTWHITE_EX))
+        print(configs["logs"]["target_alive"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, target, Fore.LIGHTWHITE_EX))
         return True
     except ConnectionError or MaxRetryError:
-        print(configs["logs"]["target_not_alive"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, target, Fore.LIGHTWHITE_EX))
+        print(configs["logs"]["target_not_alive"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, target, Fore.LIGHTWHITE_EX))
         return False
 
 
@@ -151,7 +152,7 @@ def exec_jarm_procedure(url: str) -> str:
     :return: None
     """
     jarm = acquire_jarm(url)
-    print(configs["logs"]["jarm_collected"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, jarm, Fore.RESET))
+    print(configs["logs"]["jarm_collected"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, jarm, Fore.RESET))
     return jarm
 
 
@@ -161,16 +162,16 @@ def extract_default_profiles(url: str) -> None:
     :param url: url to search the profiles
     :return: None
     """
-    print(configs["logs"]["searching_profiles"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX))
+    print(configs["logs"]["searching_profiles"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX))
     for profile in configs["profiles"]:
         try:
             profile_url = f"{url}/{profile}"
             cb_profile_detection = urlopen(profile_url)
             if cb_profile_detection.getcode() == 200:
-                print(configs["logs"]["profile_detected"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, profile, Fore.LIGHTWHITE_EX))
-                print(configs["logs"]["profile_url"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, profile_url))
-                print(configs["logs"]["profile_content_type"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, cb_profile_detection.getheader('Content-Type')))
-                print(configs["logs"]["profile_payload_size"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, cb_profile_detection.getheader('Content-Length')))
+                print(configs["logs"]["profile_detected"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, profile, Fore.LIGHTWHITE_EX))
+                print(configs["logs"]["profile_url"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, profile_url))
+                print(configs["logs"]["profile_content_type"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, cb_profile_detection.getheader('Content-Type')))
+                print(configs["logs"]["profile_payload_size"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, cb_profile_detection.getheader('Content-Length')))
         except Exception:
             continue
 
@@ -184,36 +185,48 @@ def target_lookup_from_google(url: str, jarm: str) -> None:
     """
     def lookup_request(param: str):
         """
-
-        :param param:
-        :return:
+        performs the lookup request
+        :param param: google query
+        :return: request response
         """
         return get(url=f"https://www.google.com/search?q={param}",
                    headers={
                        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:104.0) Gecko/20100101 Firefox/104.0",
-                       "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                       "Accept": "*/*",
+                       "Accept-Language": "pt - BR, pt;q = 0.8, en - US;q = 0.5, en;q = 0.3",
                        "Connection": "keep-alive",
                        "Upgrade-Insecure-Requests": "1"}).content
 
-    print(configs["logs"]["target_mentions"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX))
-    target = url.replace("/%0", "")
+    def check_blacklist(link_: str) -> bool:
+        """
+        checks if the link collected is relevant or not
+        :param link_: link collected
+        :return: True if this link is blacklisted or False if not
+        """
+        for term in configs["lookup_blacklist"]:
+            if term in link_:
+                return True
+        return False
+
+    print(configs["logs"]["target_mentions"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX))
+    target = url.replace("/%0", "").replace("https://", "").replace("http://", "")
     response = b""
     if jarm == "Not found":
-        response += lookup_request(param=f"{target} cobalt strike")
+        response += lookup_request(param=f"intext:{target} cobalt strike")
     else:
-        response += lookup_request(param=jarm)
-        response += lookup_request(param=f"{target} cobalt strike")
+        response += lookup_request(param=f"intext:{jarm}")
+        response += lookup_request(param=f'{target} cobalt strike')
 
     soup, count = BeautifulSoup(response, 'html.parser'), 0
     for link in soup.findAll("a"):
         if not link.attrs.get("href"):
             continue
-        if ("github" in link.attrs["href"] or "virustotal" in link.attrs["href"]) and not "translate.google" in link.attrs["href"] and count <= 5:
+        if ("github.com" in link.attrs["href"] or "virustotal.com" in link.attrs["href"]) and count < 5 and not check_blacklist(link_=link.attrs["href"]):
             print(configs["logs"]["lookup_url"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, link.attrs["href"].replace("/url?q=", ""), Fore.RESET))
             count += 1
 
     if count == 0:
-        print(configs["logs"]["lookup_not_found"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX,))
+        print(configs["logs"]["lookup_not_found"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX,))
 
 
 def main(args: ArgumentParser) -> None:
@@ -235,7 +248,7 @@ def main(args: ArgumentParser) -> None:
 
     for url in urls:
         # try to detect using encoded byte
-        print(configs["logs"]["url_to_check"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, url, Fore.LIGHTWHITE_EX))
+        print(configs["logs"]["url_to_check"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, url, Fore.LIGHTWHITE_EX))
         if not target_alive_checker(target=url):
             continue
         try:
@@ -243,10 +256,11 @@ def main(args: ArgumentParser) -> None:
             urlopen(url=url_with_byte)
         except Exception as error:
             request_error = str(error)
+        print(request_error)
         if configs["response_msg"] in request_error:
-            print(configs["logs"]["cs_possible"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX))
+            print(configs["logs"]["cs_possible"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX))
         else:
-            print(configs["logs"]["no_indicator"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, url, Fore.LIGHTWHITE_EX))
+            print(configs["logs"]["no_indicator"].format(Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, url, Fore.LIGHTWHITE_EX))
 
         # try to extract the jarm from url
         if arguments.jarm:
@@ -287,7 +301,7 @@ if __name__ == "__main__":
         disable_warnings(InsecureRequestWarning)
         # perform coloroma multiplatform
         init(strip=False)
-        print(configs['logo'].format(Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX))
+        print(configs['logo'].format(Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTWHITE_EX))
         main(args=args_)
 
     except KeyboardInterrupt:
